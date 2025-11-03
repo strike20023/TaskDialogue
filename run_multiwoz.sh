@@ -47,7 +47,7 @@ SUCCESS_MODE="strict"            # 评估模式: strict (严格), relaxed (宽�
 
 # vLLM 配置
 USE_VLLM=1                       # 是否使用 vLLM (0=否, 1=是)
-VLLM_MODEL_PATH="/mnt/ST8000/zhenhanbai/Reposi/LLaMA-Factory/saves/Qwen3-4B/lora/multiwoz_perfect_256samples_fixed_merged"               # vLLM 模型路径（本地模型目录，如: /path/to/Qwen3-4B-Instruct）
+VLLM_MODEL_PATH="models/Qwen3-4B-Instruct-2507"  # vLLM 模型路径（本地模型目录，如: /path/to/Qwen3-4B-Instruct）
 VLLM_SERVER_URL="http://localhost:8000"  # vLLM 服务器地址
 VLLM_PORT=8000                   # vLLM 服务器端口
 SKIP_VLLM_START=0                # 跳过启动 vLLM（1=服务器已运行，0=自动启动）

@@ -8,9 +8,11 @@ tenacity>=8.2.0
 sqlalchemy>=2.0.0
 langchain>=0.1.0
 langchain-community>=0.0.10
+requests>=2.28.0
 
-# Optional: vLLM support
+# Optional: vLLM support (uncomment if needed)
 # vllm>=0.3.0
+# Note: vLLM requires CUDA and may need specific installation steps
 
 # Optional: ZhipuAI support
 # zhipuai>=2.0.0

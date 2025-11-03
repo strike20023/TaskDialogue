@@ -109,7 +109,7 @@ vllm:
     port: 8000
     timeout: 360
   
-  model_path: "/mnt/ST8000/zhenhanbai/Reposi/models/Qwen3-4B-Instruct-2507"  # 本地模型路径
+  model_path: "models/Qwen3-4B-Instruct-2507"  # 本地模型路径（相对于项目根目录或使用绝对路径）
   
   sampling:
     temperature: 0.1

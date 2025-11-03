@@ -95,11 +95,17 @@ TaskDialogue/
 │   │   ├── multiwoz/       # MultiWOZ（完整实现）
 │   │   └── tau2/           # Tau2（完整实现）
 │   └── cli/                # 统一CLI
+├── vllm_utils/             # vLLM推理工具库
+│   ├── vllm_inference.py   # 直接推理和服务器推理
+│   ├── vllm_server.py      # 服务器管理
+│   ├── config.py           # 配置管理
+│   └── *.sh                # 启动脚本
 ├── configs/                # 配置文件
 │   ├── multiwoz/
 │   │   ├── default.yaml         # API模式
 │   │   └── custom_format.yaml   # vLLM模式
 │   └── tau2/
+├── data.tar.gz             # 压缩的数据文件
 ├── run_multiwoz.sh         # MultiWOZ脚本
 ├── run_tau2.sh             # Tau2脚本
 └── README.md               # 本文档
