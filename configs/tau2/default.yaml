@@ -1,0 +1,172 @@
+# TaskDialogue v2.0 - Tau2 默认配置
+# 完整配置文件，参考 MultiWOZ 的配置结构
+# 使用说明：
+# - API 模式：设置 model.agent.provider 为 "openai"/"deepseek"/"zhipuai"
+# - vLLM 模式：设置 provider 为 "vllm" 并配置 vllm 部分
+
+# ==================================================
+# Benchmark 类型
+# ==================================================
+benchmark:
+  type: tau2
+
+# ==================================================
+# Tau2 专用配置
+# ==================================================
+tau2:
+  domain: airline  # airline, retail, telecom (当 all_domains=true 时忽略)
+  all_domains: false  # 是否运行所有domain (true=运行airline/retail/telecom，false=只运行domain指定的)
+  task_set: null  # null 表示使用默认任务集
+  
+  # 试验配置
+  trials:
+    num_tasks: null  # null 表示全部任务，或指定具体数量
+    num_trials: 1
+  
+  # 限制配置
+  limits:
+    max_steps: 50
+    max_errors: 5
+    max_result_length: 2000  # 工具响应最大长度（防止token溢出，参考MultiWOZ）
+  
+  # 随机种子
+  seed: 300
+  
+  # 工具配置
+tools:
+  profile: "original"  # original, sql, hybrid
+  #   - original: 仅使用原始业务逻辑工具（默认，向后兼容）
+  #   - sql: 仅使用 SQL 工具（纯 SQL 模式，Agent 用 SQL 实现所有操作）
+  #   - hybrid: SQL 查询工具 + 原始业务逻辑工具（推荐，提升查询灵活性）
+
+  # SQL 模式配置（仅在 profile="sql" 或 profile="hybrid" 时使用）
+  sql:
+    engine: "sqlite"  # 数据库引擎（当前只支持 sqlite）
+    uri: ""  # 数据库文件路径（留空时根据 domain 自动生成，如 data/tau2/sql/airline.db）
+    init_sql: null  # 可选：初始化 SQL 脚本路径
+    enable_schema_tools: true  # 是否启用 schema 查询工具（db_list_tables, db_get_schema）
+
+# ==================================================
+# 模型配置（推理阶段使用）
+# ==================================================
+model:
+  # Agent 模型配置（对话系统）
+  agent:
+    provider: "deepseek"  # openai, deepseek, zhipuai, vllm
+    name: "deepseek-chat"  # 模型名称
+    temperature: 0.1  # 采样温度 (0.1-0.5，越低越稳定)
+    max_tokens: 2048  # 最大生成 token 数
+    top_p: 0.95  # nucleus sampling
+  
+  # User Simulator 模型配置
+  user:
+    provider: "deepseek"
+    name: "deepseek-chat"
+    temperature: 0.1  # User 使用低温度保持一致性
+    max_tokens: 512
+    top_p: 0.95
+
+# ==================================================
+# API 配置（直接填写 API Key）
+# ==================================================
+api:
+  openai:
+    api_key: ""  # 填入您的 OpenAI API Key
+    api_base: "https://api.openai.com/v1"
+    max_retries: 3
+    timeout: 30
+  
+  deepseek:
+    api_key: "sk-ef46582de35e4a09938558c1209f202a"  # 填入您的 DeepSeek API Key
+    api_base: "https://api.deepseek.com/v1"
+    max_retries: 5
+    timeout: 60
+  
+  zhipuai:
+    api_key: "423d566ecddb4392a20e30f8dd891b53.8Wz5jc8slBxaye8C"  # 填入您的智谱 API Key
+    api_base: "https://open.bigmodel.cn/api/paas/v4/"
+    max_retries: 5
+    timeout: 30
+
+# ==================================================
+# 重试配置（全局默认值，可被 api.{provider} 覆盖）
+# ==================================================
+retry:
+  max_retries: 5              # 最大重试次数
+  initial_delay: 1.0          # 初始延迟（秒）
+  exponential_base: 2.0      # 指数基数（延迟翻倍）
+  max_delay: 60.0             # 最大延迟（秒）
+  timeout: 60                 # 请求超时（秒）
+  log_attempts: true          # 是否记录重试日志
+
+# ==================================================
+# vLLM 配置（仅当使用 vLLM 时需要）
+# ==================================================
+vllm:
+  server:
+    base_url: "http://localhost:8000"
+    host: "localhost"
+    port: 8000
+    timeout: 360
+  
+  model_path: "/mnt/ST8000/zhenhanbai/Reposi/models/Qwen3-4B-Instruct-2507"  # 本地模型路径
+  
+  sampling:
+    temperature: 0.1
+    max_tokens: 2048
+    top_p: 0.95
+    top_k: 50
+  
+  engine:
+    tensor_parallel_size: 2
+    gpu_memory_utilization: 0.75
+    max_model_len: 16384
+    max_num_seqs: 128
+    dtype: "auto"
+    trust_remote_code: true
+    enable_lora: false
+    enable_auto_tool_choice: true
+    tool_call_parser: "hermes"  # Qwen推荐使用hermes
+    chat_template: null
+    disable_log_requests: false
+  
+  verbose: false  # 是否显示详细日志
+
+# ==================================================
+# 推理配置
+# ==================================================
+inference:
+  num_workers: 8  # 推理并发线程数（推荐 4-16，越大越快但需注意 API 限流）
+  save_batch_size: 32  # 批量保存大小
+  use_processes: false  # 是否使用进程池（默认线程池，适合 I/O 密集型任务）
+
+# ==================================================
+# 评估配置
+# ==================================================
+evaluation:
+  # 评估类型
+  evaluation_type: "all"  # env, action, communicate, all, nl_assertions, all_with_nl_assertions
+  solo_mode: false  # 是否使用 solo 模式
+  
+  # 并发配置
+  num_workers: 8  # 评估并发进程数（推荐 4-16，CPU 密集型任务）
+  save_batch_size: 32  # 批量保存大小
+  use_processes: true  # 评估使用进程池（CPU 密集型）
+
+# ==================================================
+# 输出配置
+# ==================================================
+output:
+  inference_dir: "results/tau2/inference/"  # 推理结果目录
+  evaluation_dir: "results/tau2/evaluation/"  # 评估结果目录
+
+# ==================================================
+# 日志配置
+# ==================================================
+logging:
+  level: "INFO"  # 日志级别: DEBUG, INFO, WARNING, ERROR
+  file: null  # 日志文件路径，null 表示只输出到控制台
+  format: "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan> - <level>{message}</level>"
+  show_progress: true  # 是否显示进度条
+  colorize: true  # 是否使用彩色输出
+

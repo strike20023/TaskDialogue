@@ -1,0 +1,228 @@
+# TaskDialogue v2.0 - MultiWOZ 默认配置
+# 完整配置文件，包含所有可配置参数
+# 使用说明：
+# - API 模式：设置 model.agent.provider 为 "openai"/"deepseek"/"zhipuai"
+# - vLLM 模式：设置 provider 为 "vllm" 并配置 vllm 部分
+# - Custom Format：设置 agent.type 为 "custom_format"（用于不支持原生 function calling 的模型）
+
+# ==================================================
+# Benchmark 类型
+# ==================================================
+benchmark:
+  type: multiwoz  # benchmark 类型标识
+
+# ==================================================
+# 数据配置
+# ==================================================
+data:
+  path: "data/multiwoz/data.json"  # MultiWOZ 数据文件路径
+  split: valid  # 数据集划分：train, test, valid, 或 null (全部数据)
+  dataset_name: "multiwoz24"  # 数据集名称
+  remove_police_hospital: true  # 是否移除 police 和 hospital 领域
+
+# ==================================================
+# 数据库配置
+# ==================================================
+database:
+  path: "data/db/multiwoz.db"  # 数据库文件路径
+  booking_path: "data/db/multiwoz_book.db"  # 预订数据库路径
+
+# ==================================================
+# 模型配置（推理阶段使用）
+# ==================================================
+model:
+  # Agent 模型配置（对话系统）
+  agent:
+    provider: "deepseek"  # 模型提供商: openai, deepseek, zhipuai, vllm
+    name: "deepseek-chat"  # 模型名称: deepseek-chat, gpt-4, gpt-4o, 等
+    temperature: 0.3  # 采样温度 (0.1-0.5，越低越稳定)
+    max_tokens: 2048  # 最大生成 token 数
+    top_p: 0.95  # nucleus sampling
+  
+  # User Simulator 模型配置
+  user:
+    provider: "deepseek"
+    name: "deepseek-chat"
+    temperature: 0.01  # User 使用低温度保持一致性
+    max_tokens: 512
+    top_p: 0.95
+
+# ==================================================
+# API 配置（直接填写 API Key）
+# ==================================================
+api:
+  openai:
+    api_key: ""  # 填入您的 OpenAI API Key
+    api_base: "https://api.openai.com/v1"
+    max_retries: 3
+    timeout: 30
+  
+  deepseek:
+    api_key: "sk-ef46582de35e4a09938558c1209f202a"  # 填入您的 DeepSeek API Key
+    api_base: "https://api.deepseek.com/v1"
+    max_retries: 5
+    timeout: 60
+  
+  zhipuai:
+    api_key: "423d566ecddb4392a20e30f8dd891b53.8Wz5jc8slBxaye8C"  # 填入您的智谱 API Key
+    api_base: "https://open.bigmodel.cn/api/paas/v4/"
+    max_retries: 5
+    timeout: 30
+
+# ==================================================
+# 重试配置（全局默认值，可被 api.{provider} 覆盖）
+# ==================================================
+retry:
+  max_retries: 5              # 最大重试次数
+  initial_delay: 1.0          # 初始延迟（秒）
+  exponential_base: 2.0       # 指数基数（延迟翻倍）
+  max_delay: 60.0             # 最大延迟（秒）
+  timeout: 60                 # 请求超时（秒）
+  log_attempts: true          # 是否记录重试日志
+
+# ==================================================
+# Agent 配置
+# ==================================================
+agent:
+  # Agent 类型
+  # - function_calling: 使用原生 OpenAI function calling API（推荐，支持 GPT-4/DeepSeek 等）
+  # - custom_format: 使用特殊 token（适用于不支持 function calling 的开源模型）
+  type: "function_calling"  # Agent 类型: function_calling (API), custom_format (vLLM)
+  
+  # 对话限制（防止无限循环）
+  max_turns: 30  # 最大对话轮数（防止无限循环）
+  max_tool_iterations: 5  # 单轮最大工具调用次数（防止工具调用死循环）
+  
+  # 上下文管理（防止 token 溢出）
+  max_result_length: 2000  # 工具返回结果的最大长度（observation 可能很大）
+  max_history: 50  # 最大消息历史数（超过后保留最近 50 条）
+  
+  # Custom Format 配置（仅当 type=custom_format 时使用）
+  custom_format:
+    enabled: false
+    tool_call_token: "<function_call>"
+    tool_call_end_token: "</function_call>"
+    tool_response_token: "<function_response>"
+    tool_response_end_token: "</function_response>"
+
+# ==================================================
+# vLLM 配置（仅当使用 vLLM 时需要）
+# ==================================================
+vllm:
+  server:
+    base_url: "http://localhost:8000"
+    host: "localhost"
+    port: 8000
+    timeout: 360
+  
+  model_path: "/mnt/ST8000/zhenhanbai/Reposi/models/Qwen3-4B-Instruct-2507"  # 本地模型路径
+  
+  sampling:
+    temperature: 0.1
+    max_tokens: 2048
+    top_p: 0.95
+    top_k: 50
+  
+  engine:
+    tensor_parallel_size: 2
+    gpu_memory_utilization: 0.75
+    max_model_len: 16384
+    max_num_seqs: 128
+    dtype: "auto"
+    trust_remote_code: true
+    enable_lora: false
+    # 标准模式（agent.type=function_calling）使用以下参数：
+    enable_auto_tool_choice: true
+    tool_call_parser: "hermes"  # Qwen推荐使用hermes
+    # 自定义格式模式（agent.type=custom_format）时：
+    # - enable_auto_tool_choice 应设为 false
+    # - tool_call_parser 应设为 null
+    # - Agent自己解析<tool_call>特殊token
+    chat_template: null  # 可选：指向模型的tokenizer_config.json，null则使用模型自带
+    disable_log_requests: false  # 改为 false 以查看详细的 prompt 和 response
+  
+  verbose: false  # 是否显示详细日志
+
+# ==================================================
+# 评估配置
+# ==================================================
+evaluation:
+  # 评估使用的 LLM 模型（用于从对话中提取信息）
+  eval_model: "deepseek-chat"  # 评估用 LLM 模型
+  eval_model_type: "deepseek"  # openai, deepseek, zhipuai
+  
+  # 评估指标列表
+  # 基础指标（从对话中提取并与数据库对比）:
+  #   - inform: 信息提供准确率，Agent 是否提供了满足用户约束的实体
+  #   - success: 任务完成率，是否提供了所有请求的信息（包含预订）
+  # 槽位级指标（评估对用户约束的理解）:
+  #   - jga: Joint Goal Accuracy，联合目标准确率
+  #   - f1: Slot F1 分数，槽位提取的精确率和召回率
+  # 辅助指标:
+  #   - book: 预订成功率（包含在 success 中，单独统计）
+  # 综合指标（自动计算）:
+  #   - combined_score: 综合得分 = 0.5 * inform + 0.5 * success（主要指标）
+  metrics:
+    - inform         # 必需
+    - success        # 必需
+    - combined_score # 自动计算（主要指标）
+    - jga            # 可选
+    - f1             # 可选
+  
+  # Success 评估模式（参考 TD-Eval）
+  # - relaxed: 宽松模式，只检查是否提供信息（对齐 TD-Eval，适用于 benchmark 对比）
+  # - strict: 严格模式，验证提供的信息是否与数据库匹配（更真实的质量评估）
+  success_mode: "strict"  # 评估模式: strict (严格), relaxed (宽松)
+  # 是否在评估提示中提供数据库可选值提示（提升严格模式准确率）
+  provide_db_hints: true
+  # 是否启用分领域评估（为每个领域单独计算分数）
+  per_domain_evaluation: true
+  # 是否保存详细日志（包括 LLM 提取的中间结果）
+  save_detailed_logs: true
+  # 评估模型参数
+  model_params:
+    temperature: 0.01  # 低温度保持一致性
+    max_tokens: 1024
+    top_p: 0.95
+  
+  # 并发配置
+  num_workers: 32   # 评估并发进程数（推荐 4-16，CPU 密集型任务）
+  save_batch_size: 32  # 批量保存大小
+
+# ==================================================
+# 推理配置
+# ==================================================
+inference:
+  num_samples: null  # 推理样本数量，null 表示全部数据（也可从 data.num_tasks 设置）
+  num_workers: 32  # API 并发线程数（推荐 4-16，越大越快但需注意 API 限流）
+  save_batch_size: 32  # 批量保存大小
+
+# ==================================================
+# 领域配置
+# ==================================================
+domains:
+  # 启用的领域列表
+  enabled:
+    - restaurant  # 餐厅查询和预订
+    - hotel       # 酒店查询和预订
+    - attraction  # 景点查询
+    - train       # 火车查询和订票
+    - taxi        # 出租车预订
+
+# ==================================================
+# 输出配置
+# ==================================================
+output:
+  inference_dir: "results/multiwoz/inference/"  # 推理结果目录
+  evaluation_dir: "results/multiwoz/evaluation/"  # 评估结果目录
+
+# ==================================================
+# 日志配置
+# ==================================================
+logging:
+  level: "INFO"  # 日志级别: DEBUG, INFO, WARNING, ERROR
+  file: null  # 日志文件路径，null 表示只输出到控制台
+  format: "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan> - <level>{message}</level>"
+  show_progress: true  # 是否显示进度条
+  colorize: true  # 是否使用彩色输出
+
