@@ -2,7 +2,6 @@
 
 > 统一的任务导向对话系统 Benchmark 框架
 
-**项目路径**: `/mnt/ST8000/zhenhanbai/Reposi/TaskDialogue/`  
 **版本**: v2.0  
 **状态**: ✅ 完整实现，准备测试
 
@@ -17,10 +16,25 @@
 
 ## 📦 快速开始
 
-### 安装
+### 1. 解压数据
+
+首次使用需要解压数据文件：
 
 ```bash
-cd /mnt/ST8000/zhenhanbai/Reposi/TaskDialogue
+tar -xzf data.tar.gz
+```
+
+这将解压出 `data/` 目录，包含：
+- `multiwoz/` - MultiWOZ数据集
+- `tau2/` - Tau2数据集
+- `db/` - 数据库文件
+- `llama_factory/` - 训练数据
+
+### 2. 安装依赖
+
+```bash
+pip install -r requirements.txt
+# 或者开发模式安装
 pip install -e .
 ```
 
