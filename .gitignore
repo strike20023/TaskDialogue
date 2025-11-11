@@ -60,6 +60,7 @@ checkpoints/
 
 # Data directory (use data.tar.gz instead)
 data/
+!taskdialogue/benchmarks/multiwoz/data/
 
 # But keep the compressed data file
 !data.tar.gz
