@@ -83,6 +83,7 @@ Thumbs.db
 
 # Model weights and checkpoints
 models/
+!taskdialogue/core/models/
 *.model
 weights/
 
