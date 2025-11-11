@@ -1,0 +1,46 @@
+========================================================================
+🚀 TaskDialogue v2.0 - MultiWOZ Benchmark
+========================================================================
+配置文件: configs/multiwoz/default.yaml
+运行模式: full
+样本数量: 1
+模型提供商: vllm
+模型名称: Qwen3-30B-A3B
+Agent 类型: function_calling
+推理并发: 1
+评估并发: 32
+
+配置覆盖 (20 项):
+  • model.agent.provider=vllm
+  • model.agent.name=Qwen/Qwen3-4B-Instruct-2507
+  • model.agent.temperature=0.1
+  • model.agent.max_tokens=512
+  • agent.type=function_calling
+  • agent.max_turns=30
+  • agent.max_tool_iterations=5
+  • inference.num_workers=1
+  • evaluation.num_workers=32
+  • inference.save_batch_size=32
+  • evaluation.save_batch_size=32
+  • evaluation.eval_model=deepseek-chat
+  • evaluation.success_mode=strict
+  • agent.custom_format.enabled=false
+  • vllm.engine.enable_auto_tool_choice=true
+  • vllm.engine.tool_call_parser=null
+  • model.agent.provider=vllm
+  • model.agent.name=Qwen3-30B-A3B
+  • vllm.server.base_url=http://20.66.31.2:12013
+  • vllm.server.port=12013
+========================================================================
+
+执行命令: python -m taskdialogue multiwoz --config configs/multiwoz/default.yaml --mode full --num-tasks 1 --override model.agent.provider=vllm --override model.agent.name=Qwen/Qwen3-4B-Instruct-2507 --override model.agent.temperature=0.1 --override model.agent.max_tokens=512 --override agent.type=function_calling --override agent.max_turns=30 --override agent.max_tool_iterations=5 --override inference.num_workers=1 --override evaluation.num_workers=32 --override inference.save_batch_size=32 --override evaluation.save_batch_size=32 --override evaluation.eval_model=deepseek-chat --override evaluation.success_mode=strict --override agent.custom_format.enabled=false --override vllm.engine.enable_auto_tool_choice=true --override vllm.engine.tool_call_parser=null --override model.agent.provider=vllm --override model.agent.name=Qwen3-30B-A3B --override vllm.server.base_url=http://20.66.31.2:12013 --override vllm.server.port=12013
+
+Loaded 1000 valid dialogues from split file
+
+========================================================================
+✅ 完成！
+========================================================================
+查看结果:
+  ls -lh results/multiwoz/inference/
+  ls -lh results/multiwoz/evaluation/
+========================================================================

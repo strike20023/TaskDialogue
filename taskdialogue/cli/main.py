@@ -134,7 +134,7 @@ def multiwoz(config, mode, num_tasks, task_ids, input_file, output_file, overrid
     
     # 创建 pipeline
     pipeline = MultiWOZPipeline(cfg.to_dict())
-    
+    breakpoint()
     # 解析任务ID
     task_id_list = None
     if task_ids:

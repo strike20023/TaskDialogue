@@ -27,7 +27,7 @@ OUTPUT_FILE=""                                # 输出文件基础名（不含�
 
 # 模型配置
 PROVIDER="vllm"              # 模型提供商: openai, deepseek, zhipuai, vllm
-MODEL_NAME="multiwoz_perfect_256samples_fixed_merged"       # 模型名称: deepseek-chat, gpt-4, gpt-4o, 等
+MODEL_NAME="Qwen/Qwen3-4B-Instruct-2507"       # 模型名称: deepseek-chat, gpt-4, gpt-4o, 等
 TEMPERATURE="0.1"                # 采样温度 (0.1-0.5，越低越稳定)
 MAX_TOKENS="512"                # 最大生成 token 数
 
@@ -47,7 +47,7 @@ SUCCESS_MODE="strict"            # 评估模式: strict (严格), relaxed (宽�
 
 # vLLM 配置
 USE_VLLM=1                       # 是否使用 vLLM (0=否, 1=是)
-VLLM_MODEL_PATH="models/Qwen3-4B-Instruct-2507"  # vLLM 模型路径（本地模型目录，如: /path/to/Qwen3-4B-Instruct）
+VLLM_MODEL_PATH="Qwen/Qwen3-4B-Instruct-2507"  # vLLM 模型路径（本地模型目录，如: /path/to/Qwen3-4B-Instruct）
 VLLM_SERVER_URL="http://localhost:8000"  # vLLM 服务器地址
 VLLM_PORT=8000                   # vLLM 服务器端口
 SKIP_VLLM_START=0                # 跳过启动 vLLM（1=服务器已运行，0=自动启动）
