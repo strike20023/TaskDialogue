@@ -3,7 +3,7 @@
 set -e
 
 export N_GPUS=4
-export /data/models/Qwen3-8B
+export BASE_MODEL=/data/models/Qwen3-8B
 export ROLLOUT_TP_SIZE=1
 export DATA_DIR=data
 export EXPERIMENT_NAME=searchr1
