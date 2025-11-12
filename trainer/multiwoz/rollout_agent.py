@@ -18,18 +18,11 @@ import agentlightning as agl
 
 from typing import TypedDict, Any, Dict
 from pydantic import BaseModel
-class MultiwozGoal(BaseModel):
-    message: Any
-    class Config:
-        extra = 'allow'
 
 class MultiwozData(BaseModel):
     dialogue_idx: str
-    goal: MultiwozGoal
-    log: Any
-
-class TrainingLoader(BaseModel):
-    dialogue_data: MultiwozData
+    goal: str
+    log: str
 
 @agl.rollout
 async def tool_agent(task: MultiwozData, llm: agl.LLM) -> None:
@@ -49,10 +42,15 @@ async def tool_agent(task: MultiwozData, llm: agl.LLM) -> None:
     max_turns = cfg.get("agent", {}).get("max_turns", 30)
     config = cfg.to_dict()
     # try:
-    _, inf_result = run_agent(task.get('dialogue_data'), 0, config, max_turns)
+    dialogue_data = {
+        "dialogue_idx": task['dialogue_idx'],
+        "goal": json.loads(task['goal']),
+        "log": json.loads(task['log']),
+    }
+    _, inf_result = run_agent(dialogue_data, 0, config, max_turns)
     inf_result: InferenceResult
     _, eval_result = evaluate(inf_result, 0, eval_config, {
-            "goal": task.get('dialogue_data').get('goal') if task.get('dialogue_data').get('goal') else {}
+            "goal": dialogue_data.get('goal') if dialogue_data.get('goal') else {}
         })
     eval_result: EvaluationResult
     reward = float(eval_result.overall_score or 0.0)
@@ -60,7 +58,7 @@ async def tool_agent(task: MultiwozData, llm: agl.LLM) -> None:
     #     print("Failure:", str(e))
     #     reward = 0.0
     agl.emit_reward(reward)
-    print("answer: {} ground_truth: {} reward: {}".format(inf_result.raw_messages[-1], task.get('dialogue_data').get('goal'), reward))
+    print("reward: {}".format(reward))
 
 
 async def debug():
@@ -99,6 +97,10 @@ async def debug():
         remove_police_hospital=cfg.get("data.remove_police_hospital", True),
         enabled_domains=cfg.get("domains.enabled")
     ).data
+    print()
+    import pandas as pd
+    pd.DataFrame(data).to_parquet("trainer/multiwoz/train_data.parquet", engine="pyarrow")
+    exit()
     made_up_task: TrainingLoader = TrainingLoader(
         dialogue_data=data[0]
     )
