@@ -46,15 +46,15 @@ def verl_default_config() -> Dict[str, Any]:
             "use_kl_in_reward": False,
         },
         "data": {
-            "train_batch_size": 4,
+            "train_batch_size": 1,  # 减小batch以节省显存
             "max_prompt_length": 4096,
             "max_response_length": 2048,
         },
         "actor_rollout_ref": {
             "rollout": {
                 "tensor_model_parallel_size": 1,
-                "n": 4,
-                "log_prob_micro_batch_size_per_gpu": 4,
+                "n": 1,  # 减小rollout数量
+                "log_prob_micro_batch_size_per_gpu": 1,  # 减小micro batch
                 "multi_turn": {"format": "hermes"},
                 "name": "vllm",
                 "gpu_memory_utilization": 0.6,
@@ -66,8 +66,8 @@ def verl_default_config() -> Dict[str, Any]:
                 },
             },
             "actor": {
-                "ppo_mini_batch_size": 32,
-                "ppo_micro_batch_size_per_gpu": 4,
+                "ppo_mini_batch_size": 1,  # 减小PPO mini batch
+                "ppo_micro_batch_size_per_gpu": 1,  # 减小PPO micro batch
                 "optim": {"lr": 1e-6},
                 "use_kl_loss": False,
                 "kl_loss_coef": 0.0,
@@ -80,7 +80,7 @@ def verl_default_config() -> Dict[str, Any]:
                 },
             },
             "ref": {
-                "log_prob_micro_batch_size_per_gpu": 8,
+                "log_prob_micro_batch_size_per_gpu": 1,  # 减小ref micro batch
                 "fsdp_config": {"param_offload": True},
             },
             "model": {
