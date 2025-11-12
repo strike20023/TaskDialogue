@@ -33,8 +33,8 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional, cast
 
-from trainer.multiwoz.rollout_agent import TrainingTask, tool_agent
-from datasets import Dataset as HuggingFaceDataset
+from trainer.multiwoz.rollout_agent import tool_agent
+from datasets import Dataset
 
 import agentlightning as agl
 
@@ -106,9 +106,6 @@ def verl_default_config() -> Dict[str, Any]:
 
 
 def train(
-    *,
-    train_file: str,
-    # val_file: str,
     model: Optional[str],
     llm_proxy: bool,
     ci: bool,
@@ -129,8 +126,24 @@ def train(
         external_store_address: Connects to an external store instead of creating a new one in memory.
     """
     # Load datasets (respect CLI file paths)
-    print('loading dataset from', train_file)
-    train_dataset = cast(agl.Dataset[TrainingTask], HuggingFaceDataset.from_parquet(train_file).to_list())  # type: ignore
+    from taskdialogue.benchmarks.multiwoz.data.loader import load_multiwoz_data
+    from taskdialogue.core.utils.config import load_config, Config
+
+
+    print('loading config from', "configs/multiwoz/default.yaml")
+    cfg: Config = load_config("configs/multiwoz/default.yaml")
+
+    print('loading dataset from', cfg.get("data.path", "data/multiwoz/data.json"))
+    d = load_multiwoz_data(
+        data_path=cfg.get("data.path", "data/multiwoz/data.json"),
+        split=None,
+        num_samples=None,
+        remove_police_hospital=cfg.get("data.remove_police_hospital", True),
+        enabled_domains=cfg.get("domains.enabled")
+    )
+    from trainer.multiwoz.rollout_agent import TrainingLoader
+    train_dataset = [TrainingLoader(dialogue_data=data_item) for data_item in d.data]
+    # train_dataset = cast(agl.Dataset[TrainingTask], HuggingFaceDataset.from_parquet(train_file).to_list())  # type: ignore
     # val_dataset = cast(agl.Dataset[TrainingTask], HuggingFaceDataset.from_parquet(val_file).to_list())  # type: ignore
 
     print("First 5 rows of train dataset:")
@@ -195,7 +208,6 @@ def train(
 
 def main():
     parser = argparse.ArgumentParser(description="Train a math calc agent with Agent-lightning + VERL.")
-    parser.add_argument("--train-file", type=str, default="trainer/multiwoz/train_data.parquet", help="Path to train parquet file")
     parser.add_argument("--model", type=str, default=None, help="HF model id or path (optional)")
     parser.add_argument("--llm-proxy", action="store_true", help="Enable LLM Proxy tracing/adapter")
     parser.add_argument("--ci", action="store_true", help="Run a minimal CI-style training loop")
@@ -224,8 +236,6 @@ def main():
         args.ci = True
 
     train(
-        train_file=args.train_file,
-        # val_file=args.val_file,
         model=args.model,
         llm_proxy=args.llm_proxy,
         ci=args.ci,

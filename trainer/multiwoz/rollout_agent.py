@@ -6,8 +6,7 @@ with latest Agent-lightning API (v0.2+)."""
 import asyncio
 import os
 import re
-from typing import TypedDict, Any, Dict
-from pydantic import BaseModel
+
 
 from taskdialogue.core.utils.config import load_config, Config
 from taskdialogue.benchmarks.multiwoz.pipeline import _run_single_dialogue_worker as run_agent
@@ -17,19 +16,23 @@ from taskdialogue.core.schemas.evaluation import EvaluationResult
 
 import agentlightning as agl
 
+from typing import TypedDict, Any, Dict
+from pydantic import BaseModel
 class MultiwozGoal(BaseModel):
     message: Any
     class Config:
-        extra = 'ignore'
+        extra = 'allow'
 
 class MultiwozData(BaseModel):
+    dialogue_idx: str
     goal: MultiwozGoal
+    log: Any
 
-class TrainingTask(BaseModel):
-    dialogue_data: Dict[str, MultiwozData]
+class TrainingLoader(BaseModel):
+    dialogue_data: MultiwozData
 
 @agl.rollout
-async def tool_agent(task: TrainingTask, llm: agl.LLM) -> None:
+async def tool_agent(task: MultiwozData, llm: agl.LLM) -> None:
     """agent rollout function.
 
     It would accept a task and a LLM endpoint resource.
@@ -46,10 +49,10 @@ async def tool_agent(task: TrainingTask, llm: agl.LLM) -> None:
     max_turns = cfg.get("agent", {}).get("max_turns", 30)
     config = cfg.to_dict()
     # try:
-    _, inf_result = run_agent(task['dialogue_data'], 0, config, max_turns)
+    _, inf_result = run_agent(task.get('dialogue_data'), 0, config, max_turns)
     inf_result: InferenceResult
     _, eval_result = evaluate(inf_result, 0, eval_config, {
-            "goal": task['dialogue_data'].get("goal", {}) if task['dialogue_data'] else {}
+            "goal": task.get('dialogue_data').get('goal') if task.get('dialogue_data').get('goal') else {}
         })
     eval_result: EvaluationResult
     reward = float(eval_result.overall_score or 0.0)
@@ -57,7 +60,7 @@ async def tool_agent(task: TrainingTask, llm: agl.LLM) -> None:
     #     print("Failure:", str(e))
     #     reward = 0.0
     agl.emit_reward(reward)
-    print("answer: {} ground_truth: {} reward: {}".format(inf_result.raw_messages[-1], task["dialogue_data"]["goal"], reward))
+    print("answer: {} ground_truth: {} reward: {}".format(inf_result.raw_messages[-1], task.get('dialogue_data').get('goal'), reward))
 
 
 async def debug():
@@ -71,7 +74,7 @@ async def debug():
     # Use a dummy OtelTracer if you don't need to trace anything other than reward.
     tracer = agl.OtelTracer()
     # The runner processes MathProblem, which matches the agent's task type.
-    runner = agl.LitAgentRunner[TrainingTask](tracer)
+    runner = agl.LitAgentRunner[TrainingLoader](tracer)
 
     # A store is required here to store the data collected.
     store = agl.InMemoryLightningStore()
@@ -83,55 +86,24 @@ async def debug():
         sampling_parameters={"temperature": 0.3}
     )
 
-    made_up_task: TrainingTask = TrainingTask(
-        dialogue_data={"SNG01856.json": {
-            "goal": {
-                "taxi": {},
-                "police": {},
-                "hospital": {},
-                "hotel": {
-                    "info": {
-                        "type": "hotel",
-                        "parking": "yes",
-                        "pricerange": "cheap",
-                        "internet": "yes"
-                    },
-                    "fail_info": {},
-                    "book": {
-                        "pre_invalid": True,
-                        "stay": "2",
-                        "day": "tuesday",
-                        "invalid": False,
-                        "people": "6"
-                    },
-                    "fail_book": {
-                        "stay": "3"
-                    }
-                },
-                "topic": {
-                    "taxi": False,
-                    "police": False,
-                    "restaurant": False,
-                    "hospital": False,
-                    "hotel": False,
-                    "general": False,
-                    "attraction": False,
-                    "train": False,
-                    "booking": False
-                },
-                "attraction": {},
-                "train": {},
-                "message": [
-                    "You are looking for a <span class='emphasis'>place to stay</span>. The hotel should be in the <span class='emphasis'>cheap</span> price range and should be in the type of <span class='emphasis'>hotel</span>",
-                    "The hotel should <span class='emphasis'>include free parking</span> and should <span class='emphasis'>include free wifi</span>",
-                    "Once you find the <span class='emphasis'>hotel</span> you want to book it for <span class='emphasis'>6 people</span> and <span class='emphasis'>3 nights</span> starting from <span class='emphasis'>tuesday</span>",
-                    "If the booking fails how about <span class='emphasis'>2 nights</span>",
-                    "Make sure you get the <span class='emphasis'>reference number</span>"
-                ],
-                "restaurant": {}
-            }
-        }
-        }
+    from taskdialogue.benchmarks.multiwoz.data.loader import load_multiwoz_data
+    from taskdialogue.core.utils.config import load_config, Config
+
+
+    cfg: Config = load_config("configs/multiwoz/default.yaml")
+
+    data = load_multiwoz_data(
+        data_path=cfg.get("data.path", "data/multiwoz/data.json"),
+        split=None,
+        num_samples=None,
+        remove_police_hospital=cfg.get("data.remove_police_hospital", True),
+        enabled_domains=cfg.get("domains.enabled")
+    ).data
+    made_up_task: TrainingLoader = TrainingLoader(
+        dialogue_data=data[0]
+    )
+    another_made_up_task: TrainingLoader = TrainingLoader(
+        dialogue_data=data[-1]
     )
 
     # The agent here must be the same agent that will be used in the real run.
