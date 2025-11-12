@@ -46,7 +46,7 @@ def verl_default_config() -> Dict[str, Any]:
             "use_kl_in_reward": False,
         },
         "data": {
-            "train_batch_size": 32,
+            "train_batch_size": 4,
             "max_prompt_length": 4096,
             "max_response_length": 2048,
         },
