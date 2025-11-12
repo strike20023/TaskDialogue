@@ -61,13 +61,15 @@ class MultiWOZLitAgent(LitAgent[Any]):
         # 例如：
         main_llm = resources.get("main_llm")
         if main_llm is not None:
+            cfg.set("vllm.model_path", getattr(main_llm, "model", cfg.get("model.agent.name")))
+            cfg.set("vllm.server.base_url", main_llm.endpoint)
             cfg.set("model.agent.name", getattr(main_llm, "model", cfg.get("model.agent.name")))
-            cfg.set("model.agent.endpoint", main_llm.endpoint)
             cfg.set("model.agent.provider", "vllm")
             cfg.set("evaluation.num_workers", 1)
             cfg.set("inference.num_workers", 1)
         else:
             raise ValueError("No main_llm found in resources.")
+        print(cfg)
         pipeline = MultiWOZPipeline(cfg.to_dict())
         return pipeline
 
@@ -75,8 +77,7 @@ class MultiWOZLitAgent(LitAgent[Any]):
         self,
         task: Any,
         resources: NamedResources,
-        rollout: Any,
-        temperature: float = 1.0,
+        rollout: Any
     ) -> Any:
         """对单个 MultiWOZ 对话运行推理与评估，并返回 reward。
 
@@ -99,7 +100,7 @@ class MultiWOZLitAgent(LitAgent[Any]):
         rollout: Any,
     ) -> Any:
         # 复用同样的流程；如需区分温度等参数，可在 _prepare_pipeline / config 中控制。
-        return await self.training_rollout_async(task, resources, rollout, temperature=0.0)
+        return await self.training_rollout_async(task, resources, rollout)
 
 
 if __name__ == "__main__":
