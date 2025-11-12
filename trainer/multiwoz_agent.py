@@ -56,7 +56,7 @@ class MultiWOZLitAgent(LitAgent[Any]):
         若需要与外部资源（如自定义 LLM）对齐，可在此处对 config 进行覆盖。
         """
         cfg: Config = load_config(self._config_path or "configs/multiwoz/default.yaml")
-
+        
         # 如需从 NamedResources 注入自定义模型，可在这里覆盖 config（演示：保留默认配置）。
         # 例如：
         main_llm = resources.get("main_llm")

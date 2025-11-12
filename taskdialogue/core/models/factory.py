@@ -74,16 +74,20 @@ def create_model(
     elif provider == 'deepseek':
         return _create_deepseek_model(model_name, config, **kwargs)
     
+    elif provider == 'agentlightning':
+        return _create_agentlightning_model(model_name, config, **kwargs)
+    
     elif provider == 'zhipuai':
         return _create_zhipuai_model(model_name, config, **kwargs)
     
     elif provider == 'vllm':
         return _create_vllm_model(model_name, config, **kwargs)
     
+
     else:
         raise ValueError(
             f"Unsupported provider: {provider}. "
-            f"Supported providers: openai, deepseek, zhipuai, vllm"
+            f"Supported providers: openai, deepseek, zhipuai, vllm, agentlightning"
         )
 
 
@@ -125,6 +129,20 @@ def _create_deepseek_model(model_name: str, config: Optional[Config], **kwargs) 
         **kwargs
     )
 
+def _create_agentlightning_model(model_name: str, config: Optional[Config], **kwargs) -> OpenAIModel:
+    """Create AgentLightning model instance (uses OpenAI-compatible API)."""
+    
+    # 创建重试配置
+    retry_config = RetryConfig.from_config(config, 'openai') if config else RetryConfig()
+
+    # DeepSeek uses OpenAI-compatible API with custom base URL
+    return OpenAIModel(
+        model_name=model_name,
+        api_key='sk-123',
+        base_url=config.get('model.agent.endpoint', 'http://localhost:8000/v1'),
+        retry_config=retry_config,
+        **kwargs
+    )
 
 def _create_zhipuai_model(model_name: str, config: Optional[Config], **kwargs) -> BaseModel:
     """Create ZhipuAI model instance."""
@@ -206,6 +224,6 @@ def create_model_from_config(config: Config, model_type: str = 'agent') -> BaseM
         f'{config_prefix}name',
         config.get('model.name', 'gpt-3.5-turbo')
     )
-    
+    print(f'create {model_type} model {model_name} with provider {provider}')
     return create_model(provider, model_name, config=config, model_type=model_type)
 
