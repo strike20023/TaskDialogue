@@ -135,7 +135,7 @@ async def debug():
     )
 
     # The agent here must be the same agent that will be used in the real run.
-    with runner.run_context(agent=calc_agent, store=store):
+    with runner.run_context(agent=tool_agent, store=store):
         await runner.step(
             made_up_task,
             resources={
