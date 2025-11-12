@@ -108,7 +108,7 @@ def verl_default_config() -> Dict[str, Any]:
 def train(
     *,
     train_file: str,
-    val_file: str,
+    # val_file: str,
     model: Optional[str],
     llm_proxy: bool,
     ci: bool,
@@ -134,8 +134,8 @@ def train(
 
     print("First 5 rows of train dataset:")
     print(train_dataset[:5])  # type: ignore
-    print("First 5 rows of val dataset:")
-    print(val_dataset[:5])  # type: ignore
+    # print("First 5 rows of val dataset:")
+    # print(val_dataset[:5])  # type: ignore
 
     config = verl_default_config()
 
@@ -224,7 +224,7 @@ def main():
 
     train(
         train_file=args.train_file,
-        val_file=args.val_file,
+        # val_file=args.val_file,
         model=args.model,
         llm_proxy=args.llm_proxy,
         ci=args.ci,
