@@ -60,8 +60,8 @@ def verl_default_config() -> Dict[str, Any]:
                 "gpu_memory_utilization": 0.6,
                 "engine_kwargs": {
                     "vllm": {
-                        "enable_auto_tool_choice": True,
-                        "tool_call_parser": "hermes",
+                        # "enable_auto_tool_choice": True,
+                        # "tool_call_parser": "hermes",
                     }
                 },
             },
@@ -142,7 +142,7 @@ def train(
         enabled_domains=cfg.get("domains.enabled")
     )
     from trainer.multiwoz.rollout_agent import TrainingLoader
-    train_dataset = [TrainingLoader(dialogue_data=data_item) for data_item in d.data]
+    train_dataset = HuggingFaceDataset.from_list([TrainingLoader(dialogue_data=data_item) for data_item in d.data])
     # train_dataset = cast(agl.Dataset[TrainingTask], HuggingFaceDataset.from_parquet(train_file).to_list())  # type: ignore
     # val_dataset = cast(agl.Dataset[TrainingTask], HuggingFaceDataset.from_parquet(val_file).to_list())  # type: ignore
 
@@ -179,16 +179,16 @@ def train(
         config["actor_rollout_ref"]["rollout"]["gpu_memory_utilization"] = 0.6
         config["trainer"]["total_epochs"] = 1
         config["trainer"]["total_training_steps"] = 6
-        config["trainer"]["test_freq"] = 6
+        # config["trainer"]["test_freq"] = 6
         config["trainer"]["experiment_name"] = EXPERIMENT_NAME
         config["trainer"]["project_name"] = PROJECT_NAME
-        config["trainer"].pop("save_freq", None)
+        # config["trainer"].pop("save_freq", None)
 
         if ci_fast:
             # Extra fast CI toggle for testing purposes.
             config["trainer"]["total_training_steps"] = 1
-            config["trainer"]["test_freq"] = 1
-
+            # config["trainer"]["test_freq"] = 1
+    print(config)
     algorithm = agl.VERL(config)
 
     if external_store_address:
