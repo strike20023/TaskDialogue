@@ -51,6 +51,8 @@ python -m agentlightning.verl \
     trainer.experiment_name=${EXPERIMENT_NAME} \
     trainer.nnodes=1 \
     trainer.save_freq=10 \
-    trainer.test_freq=20 \
+    trainer.val_freq=0 \
+    trainer.test_freq=0 \
     trainer.total_epochs=15 \
+    trainer.val_before_train=False \
     trainer.total_training_steps=300
