@@ -16,7 +16,7 @@ export PYTHONPATH="${SCRIPT_DIR}:${PARENT_DIR}:${PYTHONPATH}"
 # ============================================================================
 CONFIG_FILE="configs/multiwoz/default.yaml"  # 配置文件路径
 MODE="full"                                   # 运行模式: full, inference, evaluation
-NUM_SAMPLES="32"                              # 推理样本数量（空=使用配置文件或全部数据，用于覆盖 inference.num_samples）
+NUM_SAMPLES=""                                # 推理样本数量（空=使用配置文件或全部数据，用于覆盖 inference.num_samples）
 TASK_IDS=""                                   # 指定任务ID（空=处理所有任务）
 INPUT_FILE=""                                 # 输入文件（evaluation模式：指定要评估的predictions.jsonl）
 OUTPUT_FILE=""                                # 输出文件基础名（不含扩展名和路径）

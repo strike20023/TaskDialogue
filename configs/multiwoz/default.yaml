@@ -16,7 +16,7 @@ benchmark:
 # ==================================================
 data:
   path: "data/multiwoz/data.json"  # MultiWOZ 数据文件路径
-  split: valid  # 数据集划分：train, test, valid, 或 null (全部数据)
+  split: null  # 数据集划分：train, test, valid, 或 null (全部数据)
   dataset_name: "multiwoz24"  # 数据集名称
   remove_police_hospital: true  # 是否移除 police 和 hospital 领域
 

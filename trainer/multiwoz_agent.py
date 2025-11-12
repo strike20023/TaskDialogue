@@ -87,9 +87,8 @@ class MultiWOZLitAgent(LitAgent[Any]):
         pipeline = self._prepare_pipeline(resources)
 
         # 若未提供，则从数据集中取第一个样本
-        assert "task_ids" in task, "task must contain 'task_ids'."
-        task_id_list = task["task_ids"]
-        inf_results, eval_results = pipeline.run_full_pipeline(task_id_list)
+        assert "task_id" in task, "task must contain 'task_id'."
+        inf_results, eval_results = pipeline.run_full_pipeline([task["task_id"]])
         reward_score = await multiwoz_reward(inf_results[0], eval_results[0])
         return reward_score
 
