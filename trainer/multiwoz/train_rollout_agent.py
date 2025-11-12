@@ -58,7 +58,6 @@ def verl_default_config() -> Dict[str, Any]:
                 "log_prob_micro_batch_size_per_gpu": 1,  # 减小micro batch
                 "multi_turn": {"format": "hermes"},
                 "name": "vllm",
-                "gpu_memory_utilization": 0.6,
                 "engine_kwargs": {
                     "vllm": {
                         # "enable_auto_tool_choice": True,
