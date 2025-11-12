@@ -53,7 +53,7 @@ def verl_default_config() -> Dict[str, Any]:
         "actor_rollout_ref": {
             "rollout": {
                 "gpu_memory_utilization": 0.98,
-                "tensor_model_parallel_size": 1,
+                "tensor_model_parallel_size": 2,
                 "n": 1,  # 减小rollout数量
                 "log_prob_micro_batch_size_per_gpu": 1,  # 减小micro batch
                 "multi_turn": {"format": "hermes"},
@@ -90,7 +90,7 @@ def verl_default_config() -> Dict[str, Any]:
             },
         },
         "trainer": {
-            "n_gpus_per_node": 1,
+            "n_gpus_per_node": 8,
             "val_before_train": False,
             "critic_warmup": 0,
             "logger": ["console", "wandb"],
