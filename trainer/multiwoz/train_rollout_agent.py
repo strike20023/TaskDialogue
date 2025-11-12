@@ -34,7 +34,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional, cast
 
 from trainer.multiwoz.rollout_agent import tool_agent
-from datasets import Dataset
+from datasets import Dataset as HuggingFaceDataset
 
 import agentlightning as agl
 
