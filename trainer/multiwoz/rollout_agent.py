@@ -6,6 +6,7 @@ with latest Agent-lightning API (v0.2+)."""
 import asyncio
 import os
 import re
+import json
 
 
 from taskdialogue.core.utils.config import load_config, Config
