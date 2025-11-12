@@ -129,7 +129,7 @@ def train(
     # Load datasets (respect CLI file paths)
 
     train_dataset = cast(agl.Dataset[MultiwozData], HuggingFaceDataset.from_parquet(train_file).to_list())  # type: ignore
-    val_dataset = cast(agl.Dataset[MultiwozData], HuggingFaceDataset.from_parquet(val_file).to_list()[:2])  # type: ignore
+    val_dataset = cast(agl.Dataset[MultiwozData], HuggingFaceDataset.from_parquet(train_file).to_list()[:2])  # type: ignore
     # val_dataset = cast(agl.Dataset[MultiwozData], HuggingFaceDataset.from_parquet(val_file).to_list())  # type: ignore
 
     print("First 5 rows of train dataset:")
