@@ -52,6 +52,7 @@ def verl_default_config() -> Dict[str, Any]:
         },
         "actor_rollout_ref": {
             "rollout": {
+                "gpu_memory_utilization": 0.98,
                 "tensor_model_parallel_size": 1,
                 "n": 1,  # 减小rollout数量
                 "log_prob_micro_batch_size_per_gpu": 1,  # 减小micro batch
