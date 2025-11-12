@@ -13,6 +13,7 @@ echo "Starting training script..."
 python -m agentlightning.verl \
     algorithm.adv_estimator=grpo \
     data.train_files=${DATA_DIR}/multiwoz.parquet \
+    data.val_files=${DATA_DIR}/multiwoz_test.parquet \
     actor_rollout_ref.rollout.tensor_model_parallel_size=${ROLLOUT_TP_SIZE} \
     trainer.n_gpus_per_node=${N_GPUS} \
     data.train_batch_size=512 \
