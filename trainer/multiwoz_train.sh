@@ -5,15 +5,14 @@ set -e
 export N_GPUS=4
 export BASE_MODEL=/data/models/Qwen3-8B
 export ROLLOUT_TP_SIZE=1
-export DATA_DIR=data
+export DATA_DIR=trainer/train_data
 export EXPERIMENT_NAME=searchr1
 export PROJECT_NAME=AgentLightning-searchr1
 echo "Starting training script..."
 
 python -m agentlightning.verl \
     algorithm.adv_estimator=grpo \
-    data.train_files=${DATA_DIR}/train.parquet \
-    data.val_files=${DATA_DIR}/test.parquet \
+    data.train_files=${DATA_DIR}/multiwoz.parquet \
     actor_rollout_ref.rollout.tensor_model_parallel_size=${ROLLOUT_TP_SIZE} \
     trainer.n_gpus_per_node=${N_GPUS} \
     data.train_batch_size=512 \
