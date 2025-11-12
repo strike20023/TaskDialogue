@@ -84,28 +84,17 @@ async def debug():
         sampling_parameters={"temperature": 0.3}
     )
 
-    from taskdialogue.benchmarks.multiwoz.data.loader import load_multiwoz_data
-    from taskdialogue.core.utils.config import load_config, Config
 
-
-    cfg: Config = load_config("configs/multiwoz/default.yaml")
-
-    data = load_multiwoz_data(
-        data_path=cfg.get("data.path", "data/multiwoz/data.json"),
-        split=None,
-        num_samples=None,
-        remove_police_hospital=cfg.get("data.remove_police_hospital", True),
-        enabled_domains=cfg.get("domains.enabled")
-    ).data
-    print()
-    import pandas as pd
-    pd.DataFrame(data).to_parquet("trainer/multiwoz/train_data.parquet", engine="pyarrow")
-    exit()
-    made_up_task: TrainingLoader = TrainingLoader(
-        dialogue_data=data[0]
+    data = HuggingFaceDataset.from_parquet("trainer/multiwoz/train_data.parquet").to_list()
+    made_up_task: MultiwozData = MultiwozData(
+        dialogue_idx=data[0]['dialogue_idx'],
+        goal=data[0]['goal'],
+        log=data[0]['log'],
     )
-    another_made_up_task: TrainingLoader = TrainingLoader(
-        dialogue_data=data[-1]
+    another_made_up_task: MultiwozData = MultiwozData(
+        dialogue_idx=data[-1]['dialogue_idx'],
+        goal=data[-1]['goal'],
+        log=data[-1]['log'],
     )
 
     # The agent here must be the same agent that will be used in the real run.

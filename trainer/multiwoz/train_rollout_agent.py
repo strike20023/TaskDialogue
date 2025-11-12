@@ -129,10 +129,11 @@ def train(
     # Load datasets (respect CLI file paths)
 
     train_dataset = cast(agl.Dataset[MultiwozData], HuggingFaceDataset.from_parquet(train_file).to_list())  # type: ignore
+    val_dataset = cast(agl.Dataset[MultiwozData], HuggingFaceDataset.from_parquet(val_file).to_list()[:2])  # type: ignore
     # val_dataset = cast(agl.Dataset[MultiwozData], HuggingFaceDataset.from_parquet(val_file).to_list())  # type: ignore
 
     print("First 5 rows of train dataset:")
-    print(train_dataset[:5])  # type: ignore
+    # print(train_dataset[:5])  # type: ignore
     # print("First 5 rows of val dataset:")
     # print(val_dataset[:5])  # type: ignore
 
@@ -188,7 +189,7 @@ def train(
     else:
         trainer = agl.Trainer(algorithm=algorithm, n_runners=n_runners, store=store)
 
-    trainer.fit(tool_agent, train_dataset)
+    trainer.fit(tool_agent, train_dataset, val_dataset=val_dataset)
 
 
 def main():
