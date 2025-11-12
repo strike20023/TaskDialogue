@@ -9,7 +9,7 @@ def get_multiwoz_data():
 
     _df = pd.read_csv("data/multiwoz/testListFile.json", header=None)
     _df.columns = ["task_id"]
-    df = df[df["task_id"].apply(lambda x:x in _df["task_id"].tolist())]
+    df = df[df["task_id"].apply(lambda x:x in _df["task_id"].tolist())][:4]
     print(df)
     df.to_parquet("trainer/train_data/multiwoz_test.parquet", index=False)
     return df
