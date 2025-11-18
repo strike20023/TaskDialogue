@@ -134,6 +134,21 @@ class AgentLightningLLMModel(BaseModel):
         super().__init__(model_name, **kwargs)
         self.resource = resource
         self._usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+        self._client = None
+        if hasattr(self.resource, "endpoint"):
+            try:
+                import openai
+                api_key = getattr(self.resource, "api_key", None) or "sk-123"
+                base_url = getattr(self.resource, "endpoint", None)
+                timeout = kwargs.get("timeout")
+                client_kwargs = {"api_key": api_key}
+                if base_url:
+                    client_kwargs["base_url"] = base_url
+                if timeout is not None:
+                    client_kwargs["timeout"] = timeout
+                self._client = openai.OpenAI(**client_kwargs)
+            except Exception:
+                self._client = None
 
     def chat_completion(self, messages: list[dict], tools: list[dict] | None = None, temperature: float = 0.1, max_tokens: int = 4096, **kwargs) -> ModelResponse:
         api_params = {
@@ -147,7 +162,9 @@ class AgentLightningLLMModel(BaseModel):
         api_params.update(kwargs)
 
         result = None
-        if hasattr(self.resource, "client") and hasattr(self.resource.client, "chat") and hasattr(self.resource.client.chat, "completions") and hasattr(self.resource.client.chat.completions, "create"):
+        if self._client is not None:
+            result = self._client.chat.completions.create(**api_params)
+        elif hasattr(self.resource, "client") and hasattr(self.resource.client, "chat") and hasattr(self.resource.client.chat, "completions") and hasattr(self.resource.client.chat.completions, "create"):
             result = self.resource.client.chat.completions.create(**api_params)
             message = result.choices[0].message
             response = ModelResponse(content=message.content, role=message.role)
