@@ -39,6 +39,7 @@ async def tool_agent(task: MultiwozData, llm: agl.LLM) -> None:
     cfg.set("model.agent.name", llm.model)
     cfg.set("model.agent.temperature", llm.sampling_parameters.get("temperature", 0.7))
     cfg.set("model.agent.provider", "agentlightning")
+    cfg.set("model.agent.llm_resource", llm)
     eval_config = cfg.get("evaluation", {}).copy()
     max_turns = cfg.get("agent", {}).get("max_turns", 30)
     config = cfg.to_dict()

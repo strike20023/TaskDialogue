@@ -6,7 +6,7 @@ This module provides a unified interface for creating different model backends.
 
 from typing import Optional
 
-from taskdialogue.core.models.base import BaseModel
+from taskdialogue.core.models.base import BaseModel, ModelResponse
 from taskdialogue.core.models.openai_model import OpenAIModel
 from taskdialogue.core.models.vllm_model import VLLMModel
 from taskdialogue.core.utils.config import Config, get_api_key
@@ -129,17 +129,95 @@ def _create_deepseek_model(model_name: str, config: Optional[Config], **kwargs) 
         **kwargs
     )
 
-def _create_agentlightning_model(model_name: str, config: Optional[Config], **kwargs) -> OpenAIModel:
-    """Create AgentLightning model instance (uses OpenAI-compatible API)."""
-    
-    # 创建重试配置
-    retry_config = RetryConfig.from_config(config, 'openai') if config else RetryConfig()
+class AgentLightningLLMModel(BaseModel):
+    def __init__(self, resource: any, model_name: str, **kwargs):
+        super().__init__(model_name, **kwargs)
+        self.resource = resource
+        self._usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
-    # DeepSeek uses OpenAI-compatible API with custom base URL
+    def chat_completion(self, messages: list[dict], tools: list[dict] | None = None, temperature: float = 0.1, max_tokens: int = 4096, **kwargs) -> ModelResponse:
+        api_params = {
+            "model": getattr(self.resource, "model", None) or self.model_name,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        if tools:
+            api_params["tools"] = tools
+        api_params.update(kwargs)
+
+        result = None
+        if hasattr(self.resource, "client") and hasattr(self.resource.client, "chat") and hasattr(self.resource.client.chat, "completions") and hasattr(self.resource.client.chat.completions, "create"):
+            result = self.resource.client.chat.completions.create(**api_params)
+            message = result.choices[0].message
+            response = ModelResponse(content=message.content, role=message.role)
+            if hasattr(message, "tool_calls") and message.tool_calls:
+                tool_calls_list = []
+                for tc in message.tool_calls:
+                    tool_calls_list.append({
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {
+                            "name": tc.function.name,
+                            "arguments": tc.function.arguments,
+                        },
+                    })
+                response.tool_calls = tool_calls_list
+                tool_call = message.tool_calls[0]
+                response.function_call = {
+                    "name": tool_call.function.name,
+                    "arguments": tool_call.function.arguments,
+                }
+            if hasattr(result, "usage") and result.usage:
+                usage = {
+                    "prompt_tokens": result.usage.prompt_tokens,
+                    "completion_tokens": result.usage.completion_tokens,
+                    "total_tokens": result.usage.total_tokens,
+                }
+                response.usage = usage
+                for k in self._usage:
+                    self._usage[k] += usage.get(k, 0)
+            return response
+        elif hasattr(self.resource, "chat"):
+            response_dict = self.resource.chat(messages=messages, tools=tools, temperature=temperature, max_tokens=max_tokens, **kwargs)
+            content = None
+            tool_calls = None
+            usage = None
+            if isinstance(response_dict, dict):
+                content = response_dict.get("content")
+                tool_calls = response_dict.get("tool_calls")
+                usage = response_dict.get("usage")
+            response = ModelResponse(content=content, role="assistant")
+            if tool_calls:
+                response.tool_calls = tool_calls
+                if isinstance(tool_calls, list) and len(tool_calls) > 0:
+                    tc = tool_calls[0]
+                    if isinstance(tc, dict) and "function" in tc:
+                        response.function_call = {
+                            "name": tc["function"].get("name"),
+                            "arguments": tc["function"].get("arguments"),
+                        }
+            if usage:
+                response.usage = usage
+                for k in self._usage:
+                    self._usage[k] += usage.get(k, 0)
+            return response
+        raise RuntimeError("Unsupported LLM resource interface")
+
+    def get_usage_stats(self) -> dict[str, int]:
+        return self._usage.copy()
+
+def _create_agentlightning_model(model_name: str, config: Optional[Config], **kwargs) -> BaseModel:
+    resource = None
+    if config:
+        resource = config.get('model.agent.llm_resource', None)
+    if resource is not None:
+        return AgentLightningLLMModel(resource, model_name, **kwargs)
+    retry_config = RetryConfig.from_config(config, 'openai') if config else RetryConfig()
     return OpenAIModel(
         model_name=model_name,
         api_key='sk-123',
-        base_url=config.get('model.agent.endpoint', 'http://localhost:8000/v1'),
+        base_url=config.get('model.agent.endpoint', 'http://localhost:8000/v1') if config else None,
         retry_config=retry_config,
         **kwargs
     )

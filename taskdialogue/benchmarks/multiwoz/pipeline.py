@@ -57,7 +57,6 @@ def _run_single_dialogue_worker(dialogue_data: Dict[str, Any], idx: int, config:
     start_time = time.time()
     
     try:
-        # 创建模型（每个 worker 独立）
         agent_model = create_model_from_config(config, "agent")
         user_model = create_model_from_config(config, "user")
         

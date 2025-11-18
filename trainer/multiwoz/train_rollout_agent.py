@@ -52,8 +52,8 @@ def verl_default_config() -> Dict[str, Any]:
         },
         "actor_rollout_ref": {
             "rollout": {
-                "gpu_memory_utilization": 0.98,
-                "tensor_model_parallel_size": 2,
+                "gpu_memory_utilization": 0.5,
+                "tensor_model_parallel_size": 1,
                 "n": 1,  # 减小rollout数量
                 "log_prob_micro_batch_size_per_gpu": 1,  # 减小micro batch
                 "multi_turn": {"format": "hermes"},
@@ -90,7 +90,7 @@ def verl_default_config() -> Dict[str, Any]:
             },
         },
         "trainer": {
-            "n_gpus_per_node": 8,
+            "n_gpus_per_node": 1,
             "val_before_train": False,
             "critic_warmup": 0,
             "logger": ["console", "wandb"],
@@ -162,9 +162,9 @@ def train(
         print(f"EXPERIMENT_NAME={EXPERIMENT_NAME}")
 
         # Keep it tiny/light without adding new knobs
-        config["actor_rollout_ref"]["rollout"]["gpu_memory_utilization"] = 0.6
-        config["trainer"]["total_epochs"] = 1
-        config["trainer"]["total_training_steps"] = 6
+        # config["actor_rollout_ref"]["rollout"]["gpu_memory_utilization"] = 0.6
+        # config["trainer"]["total_epochs"] = 1
+        # config["trainer"]["total_training_steps"] = 6
         # config["trainer"]["test_freq"] = 6
         config["trainer"]["experiment_name"] = EXPERIMENT_NAME
         config["trainer"]["project_name"] = PROJECT_NAME
@@ -195,7 +195,6 @@ def train(
 def main():
     parser = argparse.ArgumentParser(description="Train a math calc agent with Agent-lightning + VERL.")
     parser.add_argument("--train-file", type=str, required=True, help="Path to the training parquet file")
-    parser.add_argument("--model", type=str, default=None, help="HF model id or path (optional)")
     parser.add_argument("--llm-proxy", action="store_true", help="Enable LLM Proxy tracing/adapter")
     parser.add_argument("--ci", action="store_true", help="Run a minimal CI-style training loop")
     parser.add_argument(
