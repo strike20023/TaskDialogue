@@ -1,0 +1,1 @@
+PYTHONPATH=$PYTHONPATH:$PWD python trainer/multiwoz/train_rollout_agent.py --model /data/models/Qwen3-8B --train-file trainer/multiwoz/train_data.parquet 2>&1 | grep -v "agentlightning.store.client_server" | tee log.4.txt

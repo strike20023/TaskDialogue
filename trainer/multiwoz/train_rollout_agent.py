@@ -182,13 +182,9 @@ def train(
     else:
         store = None
 
-    if llm_proxy:
-        tracer = agl.OtelTracer()  # dummy tracer for LLM Proxy
-        adapter = agl.LlmProxyTraceToTriplet()
-        trainer = agl.Trainer(algorithm=algorithm, n_runners=n_runners, store=store, tracer=tracer, adapter=adapter)
-    else:
-        trainer = agl.Trainer(algorithm=algorithm, n_runners=n_runners, store=store)
-
+    tracer = agl.OtelTracer()  # dummy tracer for LLM Proxy
+    adapter = agl.LlmProxyTraceToTriplet()
+    trainer = agl.Trainer(algorithm=algorithm, n_runners=n_runners, store=store, tracer=tracer, adapter=adapter)
     trainer.fit(tool_agent, train_dataset, val_dataset=val_dataset)
 
 
