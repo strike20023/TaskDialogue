@@ -194,6 +194,7 @@ def train(
 
 def main():
     parser = argparse.ArgumentParser(description="Train a math calc agent with Agent-lightning + VERL.")
+    parser.add_argument("--model", type=str, default=None, help="HF model id or path to override the default model")
     parser.add_argument("--train-file", type=str, required=True, help="Path to the training parquet file")
     parser.add_argument("--llm-proxy", action="store_true", help="Enable LLM Proxy tracing/adapter")
     parser.add_argument("--ci", action="store_true", help="Run a minimal CI-style training loop")
